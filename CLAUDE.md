@@ -18,7 +18,7 @@ get the walking route on the campus map and landmark directions. Separate projec
 ## Code conventions
 - Mobile-first, 390 px. Colours only via CSS variables in `:root`.
 - All visible text through `js/i18n.js` (EN fallback; SW/SO by native speakers only).
-- One IIFE in `map.js`, `"use strict"`. Without JS the map image still shows.
+- One IIFE in `map.js`, `"use strict"`. Without JS the page shows a "turn on JavaScript" note.
 - Don't rewrite the URL on first load: GoatCounter must see `?campaign=…`. Rewrite only after the visitor changes a choice.
 
 ## QR rules
