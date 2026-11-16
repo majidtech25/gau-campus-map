@@ -9,6 +9,9 @@
   --line:      #D9D3C4;
   --soft:      #FDEBD8;
   --focus:     #FDBA74;
+  --map-bg:    #FBF8F1;
+  --walkway:   #DCD3C2;
+  --dot:       #3A2A1C;
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-body:    "DM Sans", system-ui, sans-serif;
   --gap: 20px;
@@ -44,13 +47,19 @@ h1, h2 { font-family: var(--font-display); font-weight: 800; line-height: 1.05; 
 
 .summary { margin: 0; font: 800 20px var(--font-display); min-height: 1.2em; }
 
-.mapbox { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.hint { margin: -6px 0 0; font-size: 13px; color: var(--ink-soft); }
+.mapbox { position: relative; background: var(--map-bg); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
 .map { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; }
-.mapbox__full {
-  position: absolute; right: 8px; bottom: 8px; min-height: 44px; padding: 0 14px;
-  border-radius: 22px; border: 0; background: rgba(26, 31, 28, .8); color: #fff;
+.mapbtn {
+  align-self: flex-end; margin-top: -6px; min-height: 44px; padding: 0 14px;
+  border-radius: 22px; border: 1px solid var(--line); background: #fff; color: var(--ink);
   font: 700 13px var(--font-body); cursor: pointer;
 }
+.walkway { stroke: var(--walkway); fill: none; stroke-linecap: round; }
+.dot { fill: var(--dot); stroke: var(--map-bg); cursor: pointer; }
+.dot--on-route { fill: var(--orange); }
+.label { fill: var(--ink); font-family: var(--font-body); font-weight: 700; paint-order: stroke; stroke: var(--map-bg); stroke-linejoin: round; }
+.label--minor { font-weight: 500; fill: var(--ink-soft); }
 .route-casing { stroke: #fff; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .route { stroke: var(--orange); fill: none; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: no-preference) {

@@ -103,47 +103,111 @@
     return { steps: steps, turns: turns };
   }
 
-  /* ---------- map drawing ---------- */
+  /* ---------- map drawing (dots & lines, no building outlines) ---------- */
   var svg = document.getElementById("map");
-  var img = document.getElementById("map-image");
-  img.setAttribute("href", C.image.src);
-  img.setAttribute("width", C.image.w);
-  img.setAttribute("height", C.image.h);
-  var routeLayer = document.getElementById("layer-route");
+  var L = {
+    paths: document.getElementById("layer-paths"),
+    route: document.getElementById("layer-route"),
+    dots: document.getElementById("layer-dots"),
+    labels: document.getElementById("layer-labels")
+  };
+  var currentPath = null;
 
-  function setView(x, y, w, h) {
-    var aspect = 4 / 3;                              // matches the CSS aspect-ratio
-    if (w / h > aspect) { var nh = w / aspect; y -= (nh - h) / 2; h = nh; }
-    else { var nw = h * aspect; x -= (nw - w) / 2; w = nw; }
-    svg.setAttribute("viewBox", [x, y, w, h].map(Math.round).join(" "));
-    return w;
-  }
-  function fullView() { var e = C.extent; return setView(e.x, e.y, e.w, e.h); }
-
-  function el(name, attrs, parent) {
+  function el(name, attrs, parent, text) {
     var e = document.createElementNS(SVGNS, name);
     Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (text) e.textContent = text;
     parent.appendChild(e);
     return e;
   }
 
-  function drawRoute(path) {
-    routeLayer.textContent = "";
-    if (!path) { fullView(); return; }
+  // Fit a box into the 4:3 map frame; returns the view box.
+  function fit(x, y, w, h) {
+    var aspect = 4 / 3;
+    if (w / h > aspect) { var nh = w / aspect; y -= (nh - h) / 2; h = nh; }
+    else { var nw = h * aspect; x -= (nw - w) / 2; w = nw; }
+    return { x: x, y: y, w: w, h: h };
+  }
+
+  function routeBox(path) {
     var xs = path.map(function (id) { return nodes[id].x; });
     var ys = path.map(function (id) { return nodes[id].y; });
-    var pad = 70, minW = 380;
+    var pad = 80, minW = 420;
     var x0 = Math.min.apply(null, xs) - pad, x1 = Math.max.apply(null, xs) + pad;
-    var y0 = Math.min.apply(null, ys) - pad, y1 = Math.max.apply(null, ys) + pad;
+    var y0 = Math.min.apply(null, ys) - pad * 1.6, y1 = Math.max.apply(null, ys) + pad;   // extra room for labels
     if (x1 - x0 < minW) { var cx = (x0 + x1) / 2; x0 = cx - minW / 2; x1 = cx + minW / 2; }
-    var w = setView(x0, y0, x1 - x0, y1 - y0);
-    var s = w / 400;                                  // keep strokes the same on-screen size
-    var pts = path.map(function (id) { return nodes[id].x + "," + nodes[id].y; }).join(" ");
-    el("polyline", { class: "route-casing", points: pts, "stroke-width": 11 * s }, routeLayer);
-    el("polyline", { class: "route", points: pts, "stroke-width": 6 * s, "stroke-dasharray": (14 * s) + " " + (9 * s) }, routeLayer);
-    var a = nodes[path[0]], b = nodes[path[path.length - 1]];
-    el("circle", { class: "marker-start", cx: a.x, cy: a.y, r: 9 * s, "stroke-width": 3 * s }, routeLayer);
-    el("circle", { class: "marker-end", cx: b.x, cy: b.y, r: 9 * s, "stroke-width": 3 * s }, routeLayer);
+    return fit(x0, y0, x1 - x0, y1 - y0);
+  }
+
+  function render(path, wholeCampus, picked) {
+    var e = C.extent;
+    var v = (path && !wholeCampus) ? routeBox(path) : fit(e.x, e.y, e.w, e.h);
+    svg.setAttribute("viewBox", [v.x, v.y, v.w, v.h].map(Math.round).join(" "));
+    var s = v.w / 400;                               // 1 screen px ≈ s map units (phone width)
+    Object.keys(L).forEach(function (k) { L[k].textContent = ""; });
+
+    // walkways
+    C.edges.forEach(function (ed) {
+      var a = nodes[ed[0]], b = nodes[ed[1]];
+      el("line", { class: "walkway", x1: a.x, y1: a.y, x2: b.x, y2: b.y, "stroke-width": 5 * s }, L.paths);
+    });
+
+    // route
+    var onRoute = {};
+    if (path) {
+      path.forEach(function (id) { onRoute[id] = true; });
+      var pts = path.map(function (id) { return nodes[id].x + "," + nodes[id].y; }).join(" ");
+      el("polyline", { class: "route-casing", points: pts, "stroke-width": 11 * s }, L.route);
+      el("polyline", { class: "route", points: pts, "stroke-width": 6 * s, "stroke-dasharray": (14 * s) + " " + (9 * s) }, L.route);
+    }
+
+    // place dots (tap to pick)
+    C.nodes.forEach(function (n) {
+      if (n.kind !== "place") return;
+      var c = el("circle", {
+        class: "dot" + (onRoute[n.id] ? " dot--on-route" : ""),
+        cx: n.x, cy: n.y, r: (onRoute[n.id] ? 5.5 : 4.5) * s, "stroke-width": 1.5 * s
+      }, L.dots);
+      el("title", {}, c, n.name);
+      // bigger invisible hit area for fingers
+      var hit = el("circle", { cx: n.x, cy: n.y, r: 14 * s, fill: "transparent", "data-id": n.id }, L.dots);
+      hit.style.cursor = "pointer";
+      hit.addEventListener("click", function () { pick(n.id); });
+    });
+
+    // start / end markers
+    if (path) {
+      var a0 = nodes[path[0]], b0 = nodes[path[path.length - 1]];
+      el("circle", { class: "marker-start", cx: a0.x, cy: a0.y, r: 9 * s, "stroke-width": 3 * s }, L.route);
+      el("circle", { class: "marker-end", cx: b0.x, cy: b0.y, r: 9 * s, "stroke-width": 3 * s }, L.route);
+    }
+
+    // labels: start & end (bold), places passed on the route, and a just-tapped dot
+    var labelled = [];
+    if (path) {
+      labelled.push([path[0], true], [path[path.length - 1], true]);
+      if (!wholeCampus) path.slice(1, -1).forEach(function (id) { if (nodes[id].kind === "place") labelled.push([id, false]); });
+    } else {
+      labelled.push(["gate", true]);
+    }
+    if (picked && !onRoute[picked]) labelled.push([picked, true]);
+    // place labels; a minor label is skipped if it would overlap one already placed
+    var boxes = [];
+    labelled.forEach(function (item) {
+      var n = nodes[item[0]], major = item[1];
+      var fs = (major ? 13 : 11) * s, w = n.name.length * fs * 0.56, h = fs * 1.2;
+      var right = n.x + 12 * s + w < v.x + v.w;          // flip left if it would run off the right edge
+      var x = n.x + (right ? 12 : -12) * s, y = Math.max(n.y - 10 * s, v.y + fs * 1.1);
+      if (!right && x - w < v.x + 4 * s) x = v.x + 4 * s + w;   // ...but never off the left edge
+      var box = { x0: right ? x : x - w, x1: right ? x + w : x, y0: y - h, y1: y };
+      var hits = boxes.some(function (b) { return box.x0 < b.x1 && box.x1 > b.x0 && box.y0 < b.y1 && box.y1 > b.y0; });
+      if (hits && !major) return;
+      boxes.push(box);
+      el("text", {
+        class: "label" + (major ? "" : " label--minor"), x: x, y: y,
+        "text-anchor": right ? "start" : "end", "font-size": fs, "stroke-width": 3.5 * s
+      }, L.labels, n.name);
+    });
   }
 
   /* ---------- UI ---------- */
@@ -190,12 +254,14 @@
       try { history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "")); } catch (e) {}
     }
 
-    if (!from || !to) { drawRoute(null); summary.textContent = t("pick"); return; }
-    if (from === to) { drawRoute(null); summary.textContent = t("same"); return; }
+    currentPath = null;
+    if (!from || !to) { render(null, true, from || to); summary.textContent = t("pick"); return; }
+    if (from === to) { render(null, true, from); summary.textContent = t("same"); return; }
 
     var path = shortestPath(from, to);
-    if (!path) { drawRoute(null); summary.textContent = t("noroute"); return; }
-    drawRoute(path);
+    if (!path) { render(null, true); summary.textContent = t("noroute"); return; }
+    currentPath = path;
+    render(path, false);
     var d = directions(path);
     summary.textContent = d.turns === 0 ? t("summary0") : d.turns === 1 ? t("summary1") : t("summary", { turns: d.turns });
     d.steps.forEach(function (s) {
@@ -211,7 +277,14 @@
   document.getElementById("swap").addEventListener("click", function () {
     var f = fromSel.value; fromSel.value = toSel.value; toSel.value = f; update(true);
   });
-  document.getElementById("full").addEventListener("click", fullView);
+  document.getElementById("full").addEventListener("click", function () { render(currentPath, true); });
+
+  // Tapping a dot: fills "You are at" first, then "Going to".
+  function pick(id) {
+    if (!fromSel.value) fromSel.value = id;
+    else if (id !== fromSel.value) toSel.value = id;
+    update(true);
+  }
 
   update(false);
 })();

@@ -1,7 +1,8 @@
 # GaU Campus Map: "Find your way" 🗺️
 
 A mobile page for Garissa University: pick **You are at** and **Going to**, and get the
-walking route drawn on the campus map plus landmark directions
+walking route drawn on a simple campus map (walkways as lines, places as dots; tap a dot to
+pick it) plus landmark directions
 (*"At the New Administration Block, turn right."*). Built by **The Stonecoders**.
 Separate from the [GaU QR Tour](https://github.com/majidtech25/gau-qr-tour).
 
@@ -20,14 +21,13 @@ Separate from the [GaU QR Tour](https://github.com/majidtech25/gau-qr-tour).
 | `js/map.js` | Route-finding, map drawing, directions. No edits needed for new data |
 | `js/i18n.js` | All text (EN complete; SW/SO for native speakers) |
 | `css/style.css` | Styling |
-| `images/campus-map.jpg` | The campus layout map (background) |
 | `pilot/` | QR codes + printable A4 gate sign |
 | `tools/make_qr.py` | QR generator (error correction H) |
 
 ## How the data works
 
-Coordinates in `js/data.js` are **pixels on the original layout map** (2576 × 1822), so the
-route lines up with the background image.
+Coordinates in `js/data.js` are **pixels on the team's original layout map** (2576 × 1822).
+The page draws only walkways and place dots from them, with no building outlines and no map image.
 
 - **place**: shows in the dropdowns (`name`, `cat`). Put it at the building's entrance, on a walkway.
 - **junction**: a path crossing. `near` is the landmark used in directions.
@@ -44,8 +44,7 @@ because the map image has no scale. With the GIS file's real coordinates we can 
 - [ ] **Sports Field (oval)**: unlabeled on the map; confirm the name
 - [ ] Field washrooms ↔ New Lecture Halls / Police: is there a direct path? (the map shows none, so routes go round)
 - [ ] Walk at least 5 routes with the page open and check every turn
-- [ ] Map credit: confirm who made the layout map (GIS lab?) and their OK to publish it
-- [ ] Basemap: the image includes an Esri/OpenStreetMap background; keep its attribution visible
+- [ ] Credit: confirm who made the layout map the data was traced from (GIS lab?) and fill the footer credit
 
 ## QR codes
 

@@ -2,8 +2,8 @@
    GaU CAMPUS MAP DATA
    Traced from the team's campus layout map (full_uni_Layout1).
    Coordinates are PIXELS on that map at its original size
-   (2576 × 1822). x = right, y = down. The background image
-   images/campus-map.jpg is the same map, so they line up.
+   (2576 × 1822). x = right, y = down. The page draws only
+   walkways (lines) and places (dots): no building outlines.
 
    - nodes: every point a route can pass through.
        kind "place"    → appears in the dropdowns (needs name + cat)
@@ -17,7 +17,6 @@
    ========================================================= */
 
 window.CAMPUS = {
-  image: { src: "images/campus-map.jpg", w: 2576, h: 1822 },
   extent: { x: 330, y: 300, w: 1300, h: 1000 },   // initial view (campus core)
 
   categories: [

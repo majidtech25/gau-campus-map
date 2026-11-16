@@ -35,16 +35,18 @@
     </form>
 
     <p class="summary" id="summary" role="status" aria-live="polite"></p>
+    <p class="hint" data-i18n="hint">Tip: tap a dot on the map to pick that place.</p>
 
     <div class="mapbox">
       <svg id="map" class="map" role="img" aria-labelledby="map-title" preserveAspectRatio="xMidYMid meet">
         <title id="map-title">Garissa University campus map</title>
-        <image id="map-image" x="0" y="0" preserveAspectRatio="none"></image>
+        <g id="layer-paths"></g>
         <g id="layer-route"></g>
+        <g id="layer-dots"></g>
+        <g id="layer-labels"></g>
       </svg>
-      <button type="button" class="mapbox__full" id="full" data-i18n="full">Whole campus</button>
-      <noscript><img src="images/campus-map.jpg" alt="Garissa University campus map" class="map"></noscript>
     </div>
+    <button type="button" class="mapbtn" id="full" data-i18n="full">Show whole campus</button>
 
     <section class="steps" aria-labelledby="steps-title">
       <h2 id="steps-title" data-i18n="directions">Directions</h2>
@@ -55,7 +57,7 @@
 
   <footer class="foot">
     <a class="btn" href="https://gau.ac.ke" rel="noopener" data-i18n="official">Official website: gau.ac.ke</a>
-    <p class="credit">Map: [map author / GIS lab — confirm] · Directions by The Stonecoders</p>
+    <p class="credit">Layout based on the campus map by [map author / GIS lab — confirm] · Built by The Stonecoders</p>
   </footer>
 
   <script src="js/i18n.js"></script>
