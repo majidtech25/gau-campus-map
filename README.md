@@ -21,7 +21,7 @@ Separate from the [GaU QR Tour](https://github.com/majidtech25/gau-qr-tour).
 | `js/map.js` | Route-finding, map drawing, directions. No edits needed for new data |
 | `js/i18n.js` | All text (EN complete; SW/SO for native speakers) |
 | `css/style.css` | Styling |
-| `pilot/` | QR codes + printable A4 signs (`qr-signs.pdf`) |
+| `pilot/` | QR codes + printable A4 signs (`GaU-Campus-Map-QR.pdf`) |
 | `tools/make_qr.py` | QR generator (error correction H) |
 
 ## How the data works
@@ -53,9 +53,9 @@ because the map image has no scale. With the GIS file's real coordinates we can 
 | `pilot/qr-map-pilot.*` | `…/gau-campus-map/?campaign=pilot&ref=qr` |
 | `pilot/qr-map-gate.*` | `…/?from=gate&campaign=gate&ref=qr` |
 
-**Printable:** `pilot/qr-signs.pdf` (2 × A4). Page 1 is the general sign, for anywhere on campus.
+**Printable:** `pilot/GaU-Campus-Map-QR.pdf` (2 × A4). Page 1 is the general sign, for anywhere on campus.
 Page 2 is the Main Gate sign, which opens with "You are at: Main Gate" filled in. Print at 100%
-and test-scan with 3+ phones. Source: `pilot/qr-signs.html`.
+and test-scan with 3+ phones. 
 
 Scans are counted in GoatCounter (`majid.goatcounter.com`) under **Campaigns**.
 Regenerate: `python tools/make_qr.py "<url>" pilot <name>`.
