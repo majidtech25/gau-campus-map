@@ -21,6 +21,10 @@
    ========================================================= */
 
 window.CAMPUS = {
+  // GPS walking mode: real GPS positions of 3+ places (more = better, spread
+  // out). Record them on campus with tools/calibrate.html and paste here.
+  // Until then the "Start walking" button stays hidden.
+  geo: null,
   extent: { x: 330, y: 300, w: 1640, h: 1170 },   // initial / whole-campus view (incl. fields)
 
   categories: [
