@@ -3,7 +3,6 @@
    {name} placeholders are filled in by js/map.js. */
 window.I18N = {
   en: {
-    "eyebrow": "Garissa University",
     "title": "Find your way",
     "lead": "Choose where you are and where you're going.",
     "from": "You are at",
