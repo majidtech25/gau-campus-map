@@ -1,6 +1,9 @@
 /* =========================================================
    GaU CAMPUS MAP DATA
    Traced from the team's campus layout map (full_uni_Layout1).
+   Fields, Graduation Square and main roads added from the team's
+   GIS map (Nov 2026: buildings, main roads, pathways, school fields),
+   aligned to the same coordinates by matching buildings.
    Coordinates are PIXELS on that map at its original size
    (2576 × 1822). x = right, y = down. The page draws only
    walkways (lines) and places (dots): no building outlines.
@@ -10,14 +13,15 @@
        kind "junction" → path crossing; "near" names a landmark used
                          in directions ("At the Laboratory, turn left")
        kind "bend"     → just a corner in a path (never announced)
-   - edges: walkways (the purple lines on the map), both directions.
+   - edges: walkways, both directions. A third item "road" marks a
+       MAIN ROAD on the GIS map (drawn thicker); others are pathways.
 
    ⚠️ Names come from the map labels. Items marked CHECK need a
    walk-through to confirm before the map goes live.
    ========================================================= */
 
 window.CAMPUS = {
-  extent: { x: 330, y: 300, w: 1300, h: 1000 },   // initial view (campus core)
+  extent: { x: 330, y: 300, w: 1640, h: 1170 },   // initial / whole-campus view (incl. fields)
 
   categories: [
     ["gates", "Gates"],
@@ -25,7 +29,8 @@ window.CAMPUS = {
     ["lecture", "Lecture halls & labs"],
     ["halls", "Halls & hostels"],
     ["facilities", "Facilities"],
-    ["worship", "Places of worship"]
+    ["worship", "Places of worship"],
+    ["fields", "Fields & Graduation Square"]
   ],
 
   nodes: [
@@ -65,10 +70,21 @@ window.CAMPUS = {
     { id: "tvetlh",     kind: "place", cat: "lecture",    name: "TVET Lecture Halls", x: 882, y: 1230 },
     { id: "utvet",      kind: "place", cat: "lecture",    name: "University TVET", x: 845, y: 1235 },
     { id: "police",     kind: "place", cat: "facilities", name: "Police Station", x: 1290, y: 990 },
-    { id: "sports",     kind: "place", cat: "facilities", name: "Sports Field (oval)", x: 1390, y: 805 },  // CHECK: unlabeled on the map
+    { id: "sports",     kind: "place", cat: "fields",     name: "Football Pitch", x: 1390, y: 805 },
     { id: "fieldwc",    kind: "place", cat: "facilities", name: "Field Washrooms", x: 1500, y: 862 },
     { id: "admissions", kind: "place", cat: "offices",    name: "Admissions Office", x: 487, y: 1012 },
     { id: "mosque",     kind: "place", cat: "worship",    name: "Mosque", x: 452, y: 1005 },
+
+    // ---------- Fields (GIS map, Nov 2026) ----------
+    { id: "gradsq",   kind: "place", cat: "fields", name: "Graduation Square (Hockey Boys Pitch)", x: 1490, y: 890 },
+    { id: "hockeyg",  kind: "place", cat: "fields", name: "Hockey Pitch (Girls)", x: 1869, y: 907 },      // CHECK: no path drawn; reached across the field from Graduation Square
+    { id: "handball", kind: "place", cat: "fields", name: "Handball Pitch", x: 1595, y: 1293 },           // CHECK: no path drawn from the west road
+    { id: "netballb", kind: "place", cat: "fields", name: "Netball Pitch (Boys)", x: 1592, y: 1203 },     // CHECK: no path drawn
+    { id: "netballg", kind: "place", cat: "fields", name: "Netball Pitch (Girls)", x: 1577, y: 1135 },    // CHECK: no path drawn
+    { id: "volleyg",  kind: "place", cat: "fields", name: "Volleyball Pitch (Girls)", x: 1774, y: 1225 }, // CHECK: no path drawn from the west road
+    { id: "volleyb",  kind: "place", cat: "fields", name: "Volleyball Pitch (Boys)", x: 1762, y: 1124 },  // CHECK: no path drawn
+    { id: "basketg",  kind: "place", cat: "fields", name: "Basketball Pitch (Girls)", x: 1848, y: 731 },  // CHECK: no path drawn; reached along the Football Pitch
+    { id: "basketb",  kind: "place", cat: "fields", name: "Basketball Pitch (Boys)", x: 1836, y: 657 },   // CHECK: no path drawn
 
     // ---------- Junctions (landmark = "near") ----------
     { id: "jGate",   kind: "junction", near: "the junction past the Main Gate", x: 530, y: 720 },
@@ -90,6 +106,9 @@ window.CAMPUS = {
     { id: "jPolice", kind: "junction", near: "the Police Station", x: 1387, y: 965 },
     { id: "jEdu",    kind: "junction", near: "the School of Education", x: 840, y: 1055 },
     { id: "jDVC",    kind: "junction", near: "the DVCs' Offices", x: 850, y: 1105 },
+    { id: "jGrad",   kind: "junction", near: "Graduation Square", x: 1466, y: 875 },
+    { id: "jWf1",    kind: "junction", near: "the Handball Pitch", x: 1594, y: 1415 },
+    { id: "jWf2",    kind: "junction", near: "the Volleyball Pitches", x: 1775, y: 1392 },
 
     // ---------- Bends ----------
     { id: "bUp",   kind: "bend", x: 1000, y: 822 },
@@ -98,37 +117,50 @@ window.CAMPUS = {
     { id: "bD1",   kind: "bend", x: 1345, y: 892 },
     { id: "bS1",   kind: "bend", x: 1000, y: 1022 },
     { id: "bS2",   kind: "bend", x: 1255, y: 992 },
-    { id: "bS3",   kind: "bend", x: 1317, y: 985 }
+    { id: "bS3",   kind: "bend", x: 1317, y: 985 },
+    { id: "bW1",   kind: "bend", x: 1452, y: 1097 },  // west road past the fields
+    { id: "bW2",   kind: "bend", x: 1533, y: 1394 },
+    { id: "bW3",   kind: "bend", x: 1563, y: 1419 },
+    { id: "bOvalW", kind: "bend", x: 1644, y: 780 }   // CHECK: along the Football Pitch's west side (no path drawn)
   ],
 
   edges: [
     // Gate → north-west paths
-    ["gate", "jGate"], ["jGate", "spass"], ["spass", "lh57"], ["lh57", "ict"],
+    ["gate", "jGate", "road"], ["jGate", "spass"], ["spass", "lh57"], ["lh57", "ict"],
     ["ict", "dean"], ["dean", "lh14"], ["lh14", "taifa"], ["taifa", "jSite"],
     // North: prefab, Ewaso, Galana, hostels
     ["jSite", "jNorth"], ["jNorth", "prefab"], ["jNorth", "jEwaso"], ["jEwaso", "ewaso"],
     ["jEwaso", "students"], ["students", "jGalana"], ["jGalana", "galana"],
-    ["jGalana", "hostels"], ["hostels", "jEast"],
+    ["jGalana", "hostels", "road"], ["hostels", "jEast", "road"],
     // East: sports field, washrooms
-    ["jEast", "sports"], ["sports", "fieldwc"],
+    ["jEast", "sports", "road"], ["sports", "fieldwc"],
     // Hostel offices / Tana, Amani
     ["jSite", "hostoff"], ["hostoff", "tana"], ["jSite", "amani"],
     // West spine
-    ["jGate", "jAdmin"], ["jAdmin", "newadmin"], ["newadmin", "jSW"],
-    ["jSW", "jMosque"], ["jMosque", "bWest"], ["jMosque", "admissions"], ["admissions", "mosque"],
+    ["jGate", "jAdmin", "road"], ["jAdmin", "newadmin", "road"], ["newadmin", "jSW", "road"],
+    ["jSW", "jMosque", "road"], ["jMosque", "bWest", "road"], ["jMosque", "admissions", "road"], ["admissions", "mosque"],
     // Admin → Lecture Theatre → Mess
     ["jAdmin", "oldadmin"], ["oldadmin", "jLT"], ["ict", "jLT"], ["jLT", "lt"], ["lt", "jMess"],
-    ["taifa", "jMess"], ["jMess", "mess"], ["jMess", "jLab"], ["jLab", "lab"],
+    ["taifa", "jMess"], ["jMess", "mess"], ["jMess", "jLab"], ["jLab", "lab", "road"],
     // Main road
-    ["jSW", "jLab"], ["jLab", "umoja"], ["umoja", "jDisp"],
-    ["jDisp", "dispensary"], ["jDisp", "bUp"], ["bUp", "newlhs"],
-    ["jDisp", "jMathW"], ["jMathW", "mathoff"], ["jMathW", "jMath"],
-    ["jMath", "sbs"], ["sbs", "security"], ["jMath", "bRd"], ["bRd", "jNE"],
-    ["jNE", "bD1"], ["bD1", "jPolice"],
+    ["jSW", "jLab", "road"], ["jLab", "umoja", "road"], ["umoja", "jDisp", "road"],
+    ["jDisp", "dispensary"], ["jDisp", "bUp", "road"], ["bUp", "newlhs", "road"],
+    ["jDisp", "jMathW", "road"], ["jMathW", "mathoff", "road"], ["jMathW", "jMath", "road"],
+    ["jMath", "sbs"], ["sbs", "security"], ["jMath", "bRd", "road"], ["bRd", "jNE", "road"],
+    ["jNE", "bD1", "road"], ["bD1", "jPolice", "road"],
     // South road
-    ["jLab", "schooledu"], ["schooledu", "jEdu"], ["jEdu", "bS1"], ["bS1", "bS2"],
-    ["bS2", "police"], ["police", "bS3"], ["bS3", "jPolice"],
-    ["jEdu", "registrar"], ["registrar", "programs"], ["registrar", "newlib"],
-    ["jEdu", "jDVC"], ["jDVC", "dvc"], ["jDVC", "procure"], ["jDVC", "tvetlh"], ["tvetlh", "utvet"]
+    ["jLab", "schooledu", "road"], ["schooledu", "jEdu", "road"], ["jEdu", "bS1", "road"], ["bS1", "bS2", "road"],
+    ["bS2", "police", "road"], ["police", "bS3", "road"], ["bS3", "jPolice", "road"],
+    ["jEdu", "registrar", "road"], ["registrar", "programs", "road"], ["registrar", "newlib"],
+    ["jEdu", "jDVC", "road"], ["jDVC", "dvc"], ["jDVC", "procure", "road"], ["jDVC", "tvetlh"], ["tvetlh", "utvet", "road"],
+    // Lecture halls (Safaricom) / Police → Graduation Square → Football Pitch (GIS map main road)
+    ["jPolice", "jGrad", "road"], ["jGrad", "sports", "road"], ["jGrad", "gradsq"],
+    ["gradsq", "hockeyg"],                                    // CHECK
+    // West road beside the small pitches (GIS map main road)
+    ["jPolice", "bW1", "road"], ["bW1", "bW2", "road"], ["bW2", "bW3", "road"], ["bW3", "jWf1", "road"], ["jWf1", "jWf2", "road"],
+    ["jWf1", "handball"], ["handball", "netballb"], ["netballb", "netballg"],   // CHECK
+    ["jWf2", "volleyg"], ["volleyg", "volleyb"],                                // CHECK
+    // Basketball pitches, along the Football Pitch
+    ["sports", "bOvalW"], ["bOvalW", "basketg"], ["basketg", "basketb"]          // CHECK
   ]
 };
