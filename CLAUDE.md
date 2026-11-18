@@ -25,6 +25,12 @@ get the walking route on the campus map and landmark directions. Separate projec
 - Every printed QR carries `?campaign=<name>&ref=qr`. Gate QRs also carry `from=<gate id>`.
 - Permanent (engraved) QRs must use a university-owned address, never `github.io`.
 
+## Cache-busting (do this on every CSS/JS change)
+GitHub Pages lets phones keep CSS/JS for 10 minutes. `index.html` loads them as
+`css/style.css?v=YYYYMMDDx` and `js/*.js?v=YYYYMMDDx`. **Whenever you change a CSS or JS
+file, bump that version in `index.html`** (e.g. `20261118b` → `20261118c`) so visitors
+get the new files at once instead of a half-updated page.
+
 ## Git workflow
 Same as the tour: each person owns their area, branch → PR → self-check → merge yourself; review after merge.
 Self-check: page loads with no console errors at 390 px; 3+ routes give correct turns; no new unverified data.
