@@ -18,9 +18,9 @@ window.I18N = {
     "pick": "Choose where you are and where you're going.",
     "same": "You're already there!",
     "noroute": "No route found between these places.",
-    "summary": "{turns} turns · follow the orange line",
-    "summary1": "1 turn · follow the orange line",
-    "summary0": "Straight there · follow the orange line",
+    "summary": "{turns} turns · follow the red line",
+    "summary1": "1 turn · follow the red line",
+    "summary0": "Straight there · follow the red line",
 
     "start": "Start at {name}.",
     "left": "At {near}, turn left.",

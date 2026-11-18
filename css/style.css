@@ -1,19 +1,25 @@
 /* GaU Campus Map — mobile-first. Colours only via these variables. */
 :root {
-  --bg:        #F7F5EF;
-  --ink:       #1A1F1C;
-  --ink-soft:  #4F5753;
-  --green:     #14532D;   /* start marker, header accent */
-  --orange:    #C2410C;   /* route + destination */
-  --orange-tx: #9A3412;
-  --line:      #D9D3C4;
-  --soft:      #FDEBD8;
-  --focus:     #FDBA74;
-  --map-bg:    #FBF8F1;
-  --walkway:   #DCD3C2;
-  --dot:       #3A2A1C;
-  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-body:    "DM Sans", system-ui, sans-serif;
+  /* GaU theme, taken from gau.ac.ke's own theme settings (checked 18 Nov 2026):
+     primary green #008000, accent crimson #AE152D, headings #111, text #696969,
+     light grey panels #f8f8f8, borders #ededed. Fonts: Source Sans (headings),
+     Roboto (body). */
+  --bg:        #FFFFFF;
+  --ink:       #111111;
+  --ink-soft:  #5E5E5E;   /* site uses #696969; a touch darker for sunlight */
+  --green:     #008000;   /* GaU primary: header, buttons, start marker */
+  --green-dk:  #006400;   /* hover/pressed */
+  --route:     #AE152D;   /* GaU accent: route line + destination */
+  --route-tx:  #AE152D;
+  --line:      #DADADA;
+  --soft:      #E6F2E6;   /* step numbers background */
+  --focus:     #AE152D;
+  --map-bg:    #F8F8F8;
+  --walkway:   #CFCFCF;
+  --dot:       #111111;
+  --on-green:  #FFFFFF;
+  --font-display: "Source Sans 3", "Source Sans Pro", system-ui, sans-serif;
+  --font-body:    "Roboto", system-ui, sans-serif;
   --gap: 20px;
   --max: 560px;
 }
@@ -21,12 +27,15 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.5 var(--font-body); }
 body > * { max-width: var(--max); margin-inline: auto; }
-h1, h2 { font-family: var(--font-display); font-weight: 800; line-height: 1.05; margin: 0; }
+h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; margin: 0; }
 
-.head { padding: 24px var(--gap) 8px; }
-.eyebrow { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); }
-.head h1 { font-size: 36px; }
-.lead { margin: 8px 0 0; color: var(--ink-soft); }
+.head {
+  max-width: none; background: var(--green); color: var(--on-green);
+  padding: 22px max(var(--gap), calc((100% - var(--max)) / 2 + var(--gap))) 22px;
+}
+.eyebrow { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--on-green); }
+.head h1 { font-size: 38px; }
+.lead { margin: 8px 0 0; color: var(--on-green); }
 
 .main { padding: 12px var(--gap) 24px; display: flex; flex-direction: column; gap: 14px; }
 
@@ -41,11 +50,11 @@ h1, h2 { font-family: var(--font-display); font-weight: 800; line-height: 1.05; 
 .picker__swap {
   grid-column: 2; grid-row: 1 / span 2; align-self: center;
   width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer;
-  background: var(--ink); color: #fff; display: grid; place-items: center;
+  background: var(--green); color: var(--on-green); display: grid; place-items: center;
 }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
-.summary { margin: 0; font: 800 20px var(--font-display); min-height: 1.2em; }
+.summary { margin: 0; font: 700 20px var(--font-display); min-height: 1.2em; }
 
 .hint { margin: -6px 0 0; font-size: 13px; color: var(--ink-soft); }
 .mapbox { position: relative; background: var(--map-bg); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
@@ -57,31 +66,31 @@ h1, h2 { font-family: var(--font-display); font-weight: 800; line-height: 1.05; 
 }
 .walkway { stroke: var(--walkway); fill: none; stroke-linecap: round; }
 .dot { fill: var(--dot); stroke: var(--map-bg); cursor: pointer; }
-.dot--on-route { fill: var(--orange); }
+.dot--on-route { fill: var(--route); }
 .label { fill: var(--ink); font-family: var(--font-body); font-weight: 700; paint-order: stroke; stroke: var(--map-bg); stroke-linejoin: round; }
 .label--minor { font-weight: 500; fill: var(--ink-soft); }
 .route-casing { stroke: #fff; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.route { stroke: var(--orange); fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.route { stroke: var(--route); fill: none; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: no-preference) {
   .route { animation: march 1s linear infinite; }
 }
 @keyframes march { to { stroke-dashoffset: -60; } }
 .marker-start { fill: var(--green); stroke: #fff; }
-.marker-end { fill: var(--orange); stroke: #fff; }
+.marker-end { fill: var(--route); stroke: #fff; }
 
 .steps h2 { font-size: 22px; margin-bottom: 8px; }
 .steps ol { margin: 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 10px; }
 .steps li { counter-increment: s; display: grid; grid-template-columns: 32px 1fr; gap: 10px; font-size: 16px; line-height: 1.45; }
 .steps li::before {
   content: counter(s); width: 28px; height: 28px; border-radius: 50%;
-  background: var(--soft); color: var(--orange-tx);
+  background: var(--soft); color: var(--green);
   display: grid; place-items: center; font-weight: 700; font-size: 14px;
 }
-.steps li.is-end::before { background: var(--orange); color: #fff; }
+.steps li.is-end::before { background: var(--route); color: var(--on-green); }
 
 .foot { padding: 8px var(--gap) 32px; display: flex; flex-direction: column; gap: 10px; }
 .btn {
-  min-height: 50px; border-radius: 26px; background: var(--ink); color: #fff;
+  min-height: 50px; border-radius: 26px; background: var(--green); color: var(--on-green);
   display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 700;
 }
 .credit { margin: 0; font-size: 12px; color: var(--ink-soft); text-align: center; }
