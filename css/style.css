@@ -17,6 +17,8 @@
   --map-bg:    #F8F8F8;
   --walkway:   #D4D4D4;   /* pathways */
   --road:      #C9A27E;   /* main roads (brown, as on the GIS map) */
+  --you:       #1A73E8;   /* "you are here" dot (blue, as in map apps) */
+  --you-acc:   rgba(26, 115, 232, 0.16);
   --dot:       #111111;
   --on-green:  #FFFFFF;
   --font-display: "Source Sans 3", "Source Sans Pro", system-ui, sans-serif;
@@ -121,3 +123,19 @@ h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; 
   display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 700;
 }
 .credit { margin: 0; font-size: 12px; color: var(--ink-soft); text-align: center; }
+
+/* ---------- Voice + GPS walking ---------- */
+.voice { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 16px; }
+.voicebtn {
+  min-height: 46px; padding: 0 16px; border-radius: 24px; border: 2px solid var(--green);
+  background: var(--bg); color: var(--green); font: 700 15px var(--font-body); cursor: pointer;
+}
+.voicebtn--walk { background: var(--green); color: var(--on-green); }
+.voicebtn[aria-pressed="true"] { background: var(--route); border-color: var(--route); color: var(--on-green); }
+.voicebtn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.gps-status { flex-basis: 100%; margin: 0; font-size: 14px; color: var(--ink-soft); }
+.gps-status:empty { display: none; }
+.steps li.is-current { font-weight: 700; color: var(--ink); }
+.steps li.is-current::before { background: var(--route); color: var(--on-green); }
+.you { fill: var(--you); stroke: var(--on-green); }
+.you-acc { fill: var(--you-acc); stroke: none; }
