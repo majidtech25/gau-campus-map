@@ -15,7 +15,8 @@
   --soft:      #E6F2E6;   /* step numbers background */
   --focus:     #AE152D;
   --map-bg:    #F8F8F8;
-  --walkway:   #CFCFCF;
+  --walkway:   #D4D4D4;   /* pathways */
+  --road:      #C9A27E;   /* main roads (brown, as on the GIS map) */
   --dot:       #111111;
   --on-green:  #FFFFFF;
   --font-display: "Source Sans 3", "Source Sans Pro", system-ui, sans-serif;
@@ -86,6 +87,11 @@ h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; 
   font: 700 13px var(--font-body); cursor: pointer;
 }
 .walkway { stroke: var(--walkway); fill: none; stroke-linecap: round; }
+.walkway--road { stroke: var(--road); }
+.legend { list-style: none; display: flex; gap: 18px; margin: 8px var(--gap) 0; padding: 0; font-size: 13px; color: var(--ink-soft); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.legend__road { stroke: var(--road); stroke-width: 6; stroke-linecap: round; }
+.legend__path { stroke: var(--walkway); stroke-width: 3; stroke-linecap: round; }
 .dot { fill: var(--dot); stroke: var(--map-bg); cursor: pointer; }
 .dot--on-route { fill: var(--route); }
 .label { fill: var(--ink); font-family: var(--font-body); font-weight: 700; paint-order: stroke; stroke: var(--map-bg); stroke-linejoin: round; }

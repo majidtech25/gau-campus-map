@@ -9,6 +9,8 @@ window.I18N = {
     "to": "Going to",
     "choose": "Choose a place",
     "full": "Show whole campus",
+    "legendRoad": "Main road",
+    "legendPath": "Pathway",
     "hint": "Tip: tap a dot on the map to pick that place.",
     "directions": "Directions",
     "official": "Official website: gau.ac.ke",

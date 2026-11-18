@@ -41,10 +41,15 @@ because the map image has no scale. With the GIS file's real coordinates we can 
 ## To check before going live (walk-through)
 
 - [ ] **New Library**: no walkway is drawn to it on the map; the link from the registrar path is assumed
-- [ ] **Sports Field (oval)**: unlabeled on the map; confirm the name
+- [ ] **Pitches** (Hockey Girls, Handball, Netball, Volleyball, Basketball): the GIS map draws no paths to them; the links from the nearest road are assumed. Walk them
+- [ ] **Basketball pitches**: route goes down the Football Pitch's west side (assumed)
 - [ ] Field washrooms ↔ New Lecture Halls / Police: is there a direct path? (the map shows none, so routes go round)
 - [ ] Walk at least 5 routes with the page open and check every turn
 - [ ] Credit: confirm who made the layout map the data was traced from (GIS lab?) and fill the footer credit
+
+**Sources:** buildings and walkways from the layout map (full_uni_Layout1). Fields, Graduation
+Square (= Hockey Boys Pitch) and main roads vs pathways from the team's GIS map (Nov 2026),
+aligned to the same coordinates by matching buildings (error a few px).
 
 ## QR codes
 

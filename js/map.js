@@ -149,7 +149,11 @@
     // walkways
     C.edges.forEach(function (ed) {
       var a = nodes[ed[0]], b = nodes[ed[1]];
-      el("line", { class: "walkway", x1: a.x, y1: a.y, x2: b.x, y2: b.y, "stroke-width": 5 * s }, L.paths);
+      var road = ed[2] === "road";
+      el("line", {
+        class: road ? "walkway walkway--road" : "walkway",
+        x1: a.x, y1: a.y, x2: b.x, y2: b.y, "stroke-width": (road ? 8 : 4) * s
+      }, L.paths);
     });
 
     // route
