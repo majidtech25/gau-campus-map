@@ -76,7 +76,7 @@ window.CAMPUS = {
     { id: "mosque",     kind: "place", cat: "worship",    name: "Mosque", x: 452, y: 1005 },
 
     // ---------- Fields (GIS map, Nov 2026) ----------
-    { id: "gradsq",   kind: "place", cat: "fields", name: "Graduation Square (Hockey Boys Pitch)", x: 1490, y: 890 },
+    { id: "gradsq",   kind: "place", cat: "fields", name: "Graduation Square (Hockey Boys Pitch)", x: 1466, y: 875 },  // at its corner on the main road
     { id: "hockeyg",  kind: "place", cat: "fields", name: "Hockey Pitch (Girls)", x: 1869, y: 907 },      // CHECK: no path drawn; reached across the field from Graduation Square
     { id: "handball", kind: "place", cat: "fields", name: "Handball Pitch", x: 1595, y: 1293 },           // CHECK: no path drawn from the west road
     { id: "netballb", kind: "place", cat: "fields", name: "Netball Pitch (Boys)", x: 1592, y: 1203 },     // CHECK: no path drawn
@@ -92,7 +92,7 @@ window.CAMPUS = {
     { id: "jEwaso",  kind: "junction", near: "Ewaso Nyiro Hostel", x: 962, y: 447 },
     { id: "jGalana", kind: "junction", near: "Galana Hostels", x: 1110, y: 365 },
     { id: "jSite",   kind: "junction", near: "the construction site", x: 917, y: 647 },
-    { id: "jEast",   kind: "junction", near: "the New Lecture Halls (east side)", x: 1310, y: 742 },
+    { id: "jEast",   kind: "junction", near: "the New Lecture Halls (south side)", x: 1310, y: 742 },
     { id: "jAdmin",  kind: "junction", near: "the Administration Block", x: 552, y: 817 },
     { id: "jSW",     kind: "junction", near: "the New Administration Block", x: 572, y: 910 },
     { id: "jMosque", kind: "junction", near: "the Mosque turn-off", x: 475, y: 935 },
@@ -103,10 +103,9 @@ window.CAMPUS = {
     { id: "jMathW",  kind: "junction", near: "the Mathematics & SPASS Offices", x: 1005, y: 864 },
     { id: "jMath",   kind: "junction", near: "the SBS Offices", x: 1050, y: 858 },
     { id: "jNE",     kind: "junction", near: "the New Lecture Halls (south corner)", x: 1252, y: 818 },
-    { id: "jPolice", kind: "junction", near: "the Police Station", x: 1387, y: 965 },
+    { id: "jPolice", kind: "junction", near: "the Police Station corner", x: 1387, y: 965 },
     { id: "jEdu",    kind: "junction", near: "the School of Education", x: 840, y: 1055 },
     { id: "jDVC",    kind: "junction", near: "the DVCs' Offices", x: 850, y: 1105 },
-    { id: "jGrad",   kind: "junction", near: "Graduation Square", x: 1466, y: 875 },
     { id: "jWf1",    kind: "junction", near: "the Handball Pitch", x: 1594, y: 1415 },
     { id: "jWf2",    kind: "junction", near: "the Volleyball Pitches", x: 1775, y: 1392 },
 
@@ -134,6 +133,9 @@ window.CAMPUS = {
     ["jGalana", "hostels", "road"], ["hostels", "jEast", "road"],
     // East: sports field, washrooms
     ["jEast", "sports", "road"], ["sports", "fieldwc"],
+    // New Lecture Halls (Safaricom) → the main road on their south side → fields
+    // (GIS map: the road runs along the building's south face; confirmed by Majid)
+    ["newlhs", "jEast"],
     // Hostel offices / Tana, Amani
     ["jSite", "hostoff"], ["hostoff", "tana"], ["jSite", "amani"],
     // West spine
@@ -154,7 +156,7 @@ window.CAMPUS = {
     ["jEdu", "registrar", "road"], ["registrar", "programs", "road"], ["registrar", "newlib"],
     ["jEdu", "jDVC", "road"], ["jDVC", "dvc"], ["jDVC", "procure", "road"], ["jDVC", "tvetlh"], ["tvetlh", "utvet", "road"],
     // Lecture halls (Safaricom) / Police → Graduation Square → Football Pitch (GIS map main road)
-    ["jPolice", "jGrad", "road"], ["jGrad", "sports", "road"], ["jGrad", "gradsq"],
+    ["jPolice", "gradsq", "road"], ["gradsq", "sports", "road"],
     ["gradsq", "hockeyg"],                                    // CHECK
     // West road beside the small pitches (GIS map main road)
     ["jPolice", "bW1", "road"], ["bW1", "bW2", "road"], ["bW2", "bW3", "road"], ["bW3", "jWf1", "road"], ["jWf1", "jWf2", "road"],
