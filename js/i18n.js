@@ -9,8 +9,6 @@ window.I18N = {
     "to": "Going to",
     "choose": "Choose a place",
     "full": "Show whole campus",
-    "legendRoad": "Main road",
-    "legendPath": "Pathway",
     "speak": "Read directions aloud",
     "speakStop": "Stop reading",
     "walk": "Start walking (GPS + voice)",
