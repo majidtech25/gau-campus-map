@@ -135,3 +135,4 @@ h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; 
 .steps li.is-current::before { background: var(--route); color: var(--on-green); }
 .you { fill: var(--you); stroke: var(--on-green); }
 .you-acc { fill: var(--you-acc); stroke: none; }
+.you-dir { fill: var(--you); opacity: .55; }

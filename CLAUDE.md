@@ -12,7 +12,7 @@ get the walking route on the campus map and landmark directions. Separate projec
 1. `js/data.js` comes from the team's GIS layout map and walk-throughs. **Never invent a walkway, place or name.** Anything assumed gets a `// CHECK:` comment and a line in README "To check".
 2. Coordinates are pixels on the team's original layout map (2576 × 1822). The page draws dots and lines only; no map image, no building outlines.
 3. Places go at the entrance, on a walkway. Junction `near` = a landmark a visitor can see.
-4. No distances or times until we have a real scale (GIS coordinates). No guessed metres.
+4. Distances and walking times come only from the GPS fit (`geo` in `data.js`), rounded to 10 m. Never typed in by hand.
 5. Private places (residences) are not listed as destinations.
 
 ## Code conventions

@@ -21,10 +21,25 @@
    ========================================================= */
 
 window.CAMPUS = {
-  // GPS walking mode: real GPS positions of 3+ places (more = better, spread
-  // out). Record them on campus with tools/calibrate.html and paste here.
-  // Until then the "Start walking" button stays hidden.
-  geo: null,
+  // GPS positions of 10 places, so walking mode can place you on this map.
+  // Derived 20 Nov 2026 by aligning OpenStreetMap's campus data (buildings,
+  // field, hockey pitch, netball pitches; © OpenStreetMap contributors, ODbL)
+  // with the team's GIS map: field within 3 m, hockey pitch within 2 m.
+  // Improve anytime by recording on campus with tools/calibrate.html.
+  geo: {
+    points: [
+      { id: "gate", lat: -0.4478029, lon: 39.6626386 },
+      { id: "mosque", lat: -0.4477878, lon: 39.6611534 },
+      { id: "admissions", lat: -0.4479201, lon: 39.6611258 },
+      { id: "police", lat: -0.4509613, lon: 39.6611781 },
+      { id: "sports", lat: -0.4513470, lon: 39.6618698 },
+      { id: "gradsq", lat: -0.4516320, lon: 39.6616038 },
+      { id: "galana", lat: -0.4502474, lon: 39.6635917 },
+      { id: "newlhs", lat: -0.4501354, lon: 39.6618820 },
+      { id: "handball", lat: -0.4521045, lon: 39.6600273 },
+      { id: "dvc", lat: -0.4494232, lon: 39.6607422 }
+    ]
+  },
   extent: { x: 330, y: 300, w: 1640, h: 1170 },   // initial / whole-campus view (incl. fields)
 
   categories: [
