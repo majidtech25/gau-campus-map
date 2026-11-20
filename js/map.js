@@ -139,9 +139,9 @@
     return fit(x0, y0, x1 - x0, y1 - y0);
   }
 
-  function render(path, wholeCampus, picked) {
+  function render(path, wholeCampus, picked, view) {
     var e = C.extent;
-    var v = (path && !wholeCampus) ? routeBox(path) : fit(e.x, e.y, e.w, e.h);
+    var v = view || ((path && !wholeCampus) ? routeBox(path) : fit(e.x, e.y, e.w, e.h));
     svg.setAttribute("viewBox", [v.x, v.y, v.w, v.h].map(Math.round).join(" "));
     var s = v.w / 400;                               // 1 screen px ≈ s map units (phone width)
     Object.keys(L).forEach(function (k) { L[k].textContent = ""; });
@@ -255,7 +255,7 @@
     // scan counter must still see ?campaign=… then.
     if (fromUser) {
       var q = new URLSearchParams();
-      if (from) q.set("from", from);
+      if (from && from !== ME) q.set("from", from);
       if (to) q.set("to", to);
       try { history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "")); } catch (e) {}
     }
@@ -264,12 +264,27 @@
     if (!from || !to) { render(null, true, from || to); summary.textContent = t("pick"); return; }
     if (from === to) { render(null, true, from); summary.textContent = t("same"); return; }
 
+    if (from === ME && !nodes[ME]) { locateMe(); return; }
     var path = shortestPath(from, to);
     if (!path) { render(null, true); summary.textContent = t("noroute"); return; }
+    showRoute(path);
+    showVoiceBar();
+  }
+
+  // draw a route + its directions (used on change and when re-routing while walking)
+  function showRoute(path, view) {
     currentPath = path;
-    render(path, false);
+    render(path, false, null, view);
     var d = directions(path);
-    summary.textContent = d.turns === 0 ? t("summary0") : d.turns === 1 ? t("summary1") : t("summary", { turns: d.turns });
+    var sum = d.turns === 0 ? t("summary0") : d.turns === 1 ? t("summary1") : t("summary", { turns: d.turns });
+    if (geo) {
+      var m = 0;
+      for (var i = 1; i < path.length; i++) m += Math.hypot(nodes[path[i]].x - nodes[path[i - 1]].x, nodes[path[i]].y - nodes[path[i - 1]].y);
+      m = geo.m(m);
+      sum = t("walkTime", { min: Math.max(1, Math.round(m / 75)), m: Math.max(10, Math.round(m / 10) * 10) }) + " · " + sum;
+    }
+    summary.textContent = sum;
+    stepsList.textContent = "";
     currentSteps = d.steps;
     d.steps.forEach(function (s) {
       var li = document.createElement("li");
@@ -278,7 +293,6 @@
       s.li = li;
       stepsList.appendChild(li);
     });
-    showVoiceBar();
   }
 
   fromSel.addEventListener("change", function () { update(true); });
@@ -296,19 +310,39 @@
   }
 
 
-  /* ---------- Voice: read the directions aloud ---------- */
+  /* ---------- Voice ---------- */
   var voiceBar = document.getElementById("voice");
   var speakBtn = document.getElementById("speak");
   var walkBtn = document.getElementById("walk");
+  var recenterBtn = document.getElementById("recenter");
   var gpsStatus = document.getElementById("gps-status");
   var canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
-  var reading = false;
+  var reading = false, voice = null;
+
+  // Use the most natural English voice the phone offers (Google / Natural / Neural voices
+  // sound much better than the default). Voices load late on some phones.
+  function pickVoice() {
+    if (!canSpeak) return;
+    var vs = window.speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
+    var rank = function (v) {
+      var n = v.name, r = 0;
+      if (/natural|neural|premium|enhanced|wavenet/i.test(n)) r += 4;
+      if (/google/i.test(n)) r += 3;
+      if (/en[-_](KE|GB)/i.test(v.lang)) r += 2; else if (/en[-_]US/i.test(v.lang)) r += 1;
+      if (v.localService) r += 1;                     // works offline / on mobile data
+      return r;
+    };
+    vs.sort(function (a, b) { return rank(b) - rank(a); });
+    voice = vs[0] || null;
+  }
+  if (canSpeak) { pickVoice(); window.speechSynthesis.onvoiceschanged = pickVoice; }
 
   function say(text, queue) {
-    if (!canSpeak) return;
+    if (!canSpeak) return null;
     if (!queue) window.speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-GB";        // SW / SO voices only after native speakers write the text
+    if (voice) u.voice = voice;
+    u.lang = voice ? voice.lang : "en-GB";            // SW / SO voices only after native speakers write the text
     u.rate = 0.95;
     window.speechSynthesis.speak(u);
     return u;
@@ -330,15 +364,14 @@
     window.speechSynthesis.cancel();
     currentSteps.forEach(function (st, i) {
       var u = say(st.text, true);
-      if (i === currentSteps.length - 1) u.onend = stopReading;
+      if (u && i === currentSteps.length - 1) u.onend = stopReading;
     });
   });
 
-  /* ---------- GPS walking mode ----------
-     Needs C.geo: 3+ places whose real GPS position was recorded on campus
-     (tools/calibrate.html). From those we fit GPS -> map coordinates. Then:
-     a "you are here" dot, and each instruction is spoken as you reach it.
-     The location never leaves the phone. */
+  /* ---------- GPS -> map ----------
+     C.geo holds real GPS positions of some places; from them we fit GPS -> map
+     coordinates (least squares). This also gives a real scale, so distances and
+     walking times can be shown. Location never leaves the phone. */
   var geo = (function () {
     var pts = (C.geo && C.geo.points || []).filter(function (p) { return nodes[p.id]; });
     if (pts.length < 3) return null;
@@ -346,7 +379,6 @@
     pts.forEach(function (p) { lat0 += p.lat / pts.length; lon0 += p.lon / pts.length; });
     var kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
     function local(lat, lon) { return [(lon - lon0) * kx, (lat - lat0) * ky]; }   // metres east, north
-    // least squares: map = [E N 1] * coef  (separately for x and y)
     var M = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], bx = [0, 0, 0], by = [0, 0, 0];
     pts.forEach(function (p) {
       var l = local(p.lat, p.lon), r = [l[0], l[1], 1], n = nodes[p.id];
@@ -355,15 +387,14 @@
         bx[i] += r[i] * n.x; by[i] += r[i] * n.y;
       }
     });
-    function solve(A, b) {                       // 3x3, Cramer's rule
-      function det(m) {
-        return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-      }
+    function det(m) {
+      return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+    }
+    function solve(A, b) {                             // 3x3, Cramer's rule
       var D = det(A);
       if (Math.abs(D) < 1e-9) return null;
       return [0, 1, 2].map(function (c) {
-        var m = A.map(function (row, i) { return row.map(function (v, j) { return j === c ? b[i] : v; }); });
-        return det(m) / D;
+        return det(A.map(function (row, i) { return row.map(function (v, j) { return j === c ? b[i] : v; }); })) / D;
       });
     }
     var cx = solve(M, bx), cy = solve(M, by);
@@ -380,13 +411,45 @@
   })();
   var canWalk = !!(geo && navigator.geolocation);
 
-  var walk = null;   // { watch, spoken:{}, seg, off, lock }
+  /* ---------- "My location" as the start ---------- */
+  var ME = "__me";
+  function setMe(p) {
+    if (nodes[ME]) adj[ME].forEach(function (e) { adj[e.to] = adj[e.to].filter(function (x) { return x.to !== ME; }); });
+    nodes[ME] = { id: ME, kind: "place", name: t("myLocation"), x: p.x, y: p.y };
+    adj[ME] = [];
+    // join to the two nearest points of the network
+    var near = C.nodes.map(function (n) { return { id: n.id, d: Math.hypot(n.x - p.x, n.y - p.y) }; })
+      .sort(function (a, b) { return a.d - b.d; }).slice(0, 2);
+    near.forEach(function (n) { adj[ME].push({ to: n.id, d: n.d }); adj[n.id].push({ to: ME, d: n.d }); });
+    return near[0] ? geo.m(near[0].d) : Infinity;
+  }
+  if (canWalk) {
+    var meOpt = document.createElement("option");
+    meOpt.value = ME;
+    meOpt.textContent = "📍 " + t("myLocation");
+    fromSel.insertBefore(meOpt, fromSel.firstElementChild ? fromSel.firstElementChild.nextSibling : null);   // right after "Choose a place"
+  }
+  function locateMe() {
+    render(null, true);
+    summary.textContent = t("gpsWait");
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var far = setMe(geo.toMap(pos.coords.latitude, pos.coords.longitude));
+      if (far > 300) { delete nodes[ME]; summary.textContent = t("gpsFarCampus"); return; }
+      update(false);
+    }, function (err) {
+      summary.textContent = err && err.code === 1 ? t("gpsDenied") : t("gpsWait");
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 });
+  }
+
+  /* ---------- Walking mode: live position, map follows you, spoken turns ---------- */
+  var walk = null;   // { watch, spoken, pre, seg, off, lock, follow, last, heading }
   var youLayer = document.getElementById("layer-you");
 
   function showVoiceBar() {
     voiceBar.hidden = !(canSpeak || canWalk);
     speakBtn.hidden = !canSpeak;
     walkBtn.hidden = !canWalk;
+    recenterBtn.hidden = true;
     gpsStatus.textContent = "";
   }
 
@@ -398,9 +461,11 @@
     youLayer.textContent = "";
     setBtn(walkBtn, "walk");
     walkBtn.setAttribute("aria-pressed", "false");
+    recenterBtn.hidden = true;
     currentSteps.forEach(function (st) { if (st.li) st.li.classList.remove("is-current"); });
+    if (currentPath) render(currentPath, false);
   }
-  function stopAll() { if (canSpeak) stopReading(); stopWalking(); gpsStatus.textContent = ""; }
+  function stopAll() { if (canSpeak) stopReading(); stopWalking(); if (gpsStatus) gpsStatus.textContent = ""; }
 
   // nearest point on the route: segment index, distance (map units)
   function onRoute(p) {
@@ -415,52 +480,103 @@
     return best;
   }
 
+  // a ~140 m wide window around you, like a navigation app
+  function followView(p) {
+    var w = geo.u(140), h = w * 3 / 4;
+    return fit(p.x - w / 2, p.y - h / 2, w, h);
+  }
+
   function drawYou(p, accM) {
     youLayer.textContent = "";
     var v = svg.viewBox.baseVal, s = v.width / 400;
     el("circle", { class: "you-acc", cx: p.x, cy: p.y, r: Math.max(geo.u(accM), 6 * s) }, youLayer);
+    if (walk && walk.heading !== null) {
+      var a = walk.heading, r = 16 * s, w = 9 * s;     // direction cone ahead of the dot
+      var tip = [p.x + Math.cos(a) * r, p.y + Math.sin(a) * r];
+      var l = [p.x + Math.cos(a + 2.4) * w, p.y + Math.sin(a + 2.4) * w];
+      var rt = [p.x + Math.cos(a - 2.4) * w, p.y + Math.sin(a - 2.4) * w];
+      el("polygon", { class: "you-dir", points: [tip, l, rt].map(function (q) { return q.join(","); }).join(" ") }, youLayer);
+    }
     el("circle", { class: "you", cx: p.x, cy: p.y, r: 7 * s, "stroke-width": 3 * s }, youLayer);
   }
 
   function highlight(st) {
     currentSteps.forEach(function (x) { if (x.li) x.li.classList.toggle("is-current", x === st); });
   }
+  function lowerFirst(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
+  function round10(m) { return Math.max(10, Math.round(m / 10) * 10); }
+
+  function reroute(p) {
+    var dest = currentPath[currentPath.length - 1];
+    setMe(p);
+    var path = shortestPath(ME, dest);
+    if (!path) return false;
+    showRoute(path, walk.follow ? followView(p) : null);
+    walk.spoken = {}; walk.pre = {}; walk.seg = 0; walk.off = 0;
+    var next = currentSteps[1];
+    say(t("rerouting") + (next ? " " + next.text : ""));
+    return true;
+  }
 
   function onFix(pos) {
-    if (!walk || !currentPath) return;
+    if (!walk || walk.done || !currentPath) return;
     var acc = Math.round(pos.coords.accuracy);
     var p = geo.toMap(pos.coords.latitude, pos.coords.longitude);
+    // heading: from the phone if it reports one while moving, otherwise from our own movement
+    if (walk.last && geo.m(Math.hypot(p.x - walk.last.x, p.y - walk.last.y)) >= 3) {
+      walk.heading = Math.atan2(p.y - walk.last.y, p.x - walk.last.x);
+      walk.last = p;
+    } else if (!walk.last) walk.last = p;
+    if (walk.follow) render(currentPath, false, null, followView(p));
     drawYou(p, acc);
     if (acc > 50) { gpsStatus.textContent = t("gpsWeak", { m: acc }); return; }
     var r = onRoute(p), offM = geo.m(r.d);
     if (offM > 300) { gpsStatus.textContent = t("gpsFar"); return; }
-    gpsStatus.textContent = t("gpsOk", { m: acc });
-    // off the route?
-    if (offM > Math.max(35, acc)) {
+    // off the route for a few fixes: find a new route from here (like a map app)
+    if (offM > Math.max(30, acc)) {
       walk.off++;
-      if (walk.off === 3) say(t("offroute"));
+      gpsStatus.textContent = t("offroute");
+      if (walk.off === 3 && !reroute(p)) say(t("offroute"));
       return;
     }
     walk.off = 0;
     walk.seg = Math.max(walk.seg, r.seg);
-    // the next instruction ahead of us: speak it as we reach its junction
+    // metres left to the destination along the route
+    var left = Math.hypot(nodes[currentPath[r.seg + 1]].x - p.x, nodes[currentPath[r.seg + 1]].y - p.y);
+    for (var k = r.seg + 1; k < currentPath.length - 1; k++) {
+      left += Math.hypot(nodes[currentPath[k + 1]].x - nodes[currentPath[k]].x, nodes[currentPath[k + 1]].y - nodes[currentPath[k]].y);
+    }
+    var leftM = geo.m(left);
+    gpsStatus.textContent = t("gpsLeft", { m: round10(leftM), min: Math.max(1, Math.round(leftM / 75)), acc: acc });
+
+    // the next instruction ahead: warn ~40 m before, then speak it at the junction
     for (var i = 0; i < currentSteps.length; i++) {
       var st = currentSteps[i];
       if (st.type === "start" || walk.spoken[i] || st.at < walk.seg) continue;
       var n = nodes[currentPath[st.at]];
       var dM = geo.m(Math.hypot(n.x - p.x, n.y - p.y));
-      var near = st.end && st.at === currentPath.length - 1 ? 15 : 25;
-      if (dM <= Math.max(near, acc)) {
+      var final = st.end && st.at === currentPath.length - 1;
+      var atIt = Math.max(final ? 12 : 15, acc);
+      if (dM <= atIt) {
         walk.spoken[i] = true;
         highlight(st);
-        say(st.text);
-        if (st.end) { setTimeout(stopWalking, 400); gpsStatus.textContent = t("arrivedNote"); }
+        say(st.type === "turn" ? t("turnNow", { text: lowerFirst(st.text) }) : st.text);
+        if (st.end) {
+          walk.done = true;
+          setTimeout(function () { stopWalking(); gpsStatus.textContent = t("arrivedNote"); }, 600);
+        }
+      } else if (dM <= 45 && !walk.pre[i] && st.type !== "straight") {
+        walk.pre[i] = true;
+        highlight(st);
+        say(final ? t("inMetresArrive", { m: round10(dM), name: nodes[currentPath[st.at]].name })
+                  : t("inMetres", { m: round10(dM), text: lowerFirst(st.text) }));
       }
-      break;                                        // only ever the next one
+      break;                                          // only ever the next one
     }
   }
 
   function onGpsError(err) {
+    if (!walk || walk.done) return;
     gpsStatus.textContent = err && err.code === 1 ? t("gpsDenied") : t("gpsWait");
     if (err && err.code === 1) stopWalking();
   }
@@ -469,13 +585,23 @@
     if (walk) { stopWalking(); gpsStatus.textContent = ""; return; }
     if (!currentPath) return;
     stopReading();
-    walk = { spoken: {}, seg: 0, off: 0, lock: null };
+    walk = { spoken: {}, pre: {}, seg: 0, off: 0, lock: null, follow: true, last: null, heading: null };
     setBtn(walkBtn, "walkStop");
     walkBtn.setAttribute("aria-pressed", "true");
     gpsStatus.textContent = t("gpsWait");
     say(t("walkStart", { name: nodes[currentPath[currentPath.length - 1]].name }));
     if (navigator.wakeLock) navigator.wakeLock.request("screen").then(function (l) { if (walk) walk.lock = l; }, function () {});
-    walk.watch = navigator.geolocation.watchPosition(onFix, onGpsError, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+    walk.watch = navigator.geolocation.watchPosition(onFix, onGpsError, { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+  });
+
+  // While walking, "Show whole campus" stops following you; "Follow me" brings it back.
+  document.getElementById("full").addEventListener("click", function () {
+    if (walk) { walk.follow = false; recenterBtn.hidden = false; }
+  });
+  recenterBtn.addEventListener("click", function () {
+    if (!walk) return;
+    walk.follow = true; recenterBtn.hidden = true;
+    if (walk.last) render(currentPath, false, null, followView(walk.last));
   });
 
   update(false);

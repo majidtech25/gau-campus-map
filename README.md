@@ -45,31 +45,34 @@ because the map image has no scale. With the GIS file's real coordinates we can 
 - [ ] **Basketball pitches**: route goes down the Football Pitch's west side (assumed)
 - [ ] Field washrooms ↔ New Lecture Halls / Police: is there a direct path? (the map shows none, so routes go round)
 - [ ] Walk at least 5 routes with the page open and check every turn
-- [ ] **GPS calibration** (see "Voice directions & GPS walking mode"), then test walking mode on 3 routes
+- [ ] **Walk 3 routes with walking mode on**, check the dot follows the paths and turns are spoken at the right spots (GPS alignment is from OpenStreetMap, not yet checked on foot)
 - [ ] Credit: confirm who made the layout map the data was traced from (GIS lab?) and fill the footer credit
 
 **Sources:** buildings and walkways from the layout map (full_uni_Layout1). Fields, Graduation
 Square (= Hockey Boys Pitch) and main roads vs pathways from the team's GIS map (Nov 2026),
 aligned to the same coordinates by matching buildings (error a few px).
 
-## Voice directions & GPS walking mode
+## Live navigation (GPS + voice)
 
-- **Read directions aloud** works now on any phone with a speech voice (English voice;
-  Kiswahili/Somali only after native speakers write the text).
-- **Start walking (GPS + voice)** shows a blue "you are here" dot and speaks each instruction
-  as you reach its junction, says when you've arrived, and warns if you leave the route.
-  The location stays on the phone (nothing is sent anywhere). It needs HTTPS (github.io is fine).
-- It stays **hidden until the map is calibrated**: the map uses drawing pixels, not GPS.
+Works like a map app, on the visitor's phone only (location is never sent anywhere):
+- **📍 My location** as the start ("You are at"): routes from where you stand.
+- **Start walking (GPS + voice)**: blue dot with a direction arrow; the map follows you
+  (*Show whole campus* stops following, *Follow me* resumes); spoken warning ~40 m before
+  each turn ("In about 40 metres, at …, turn left"), then "Now …" at the turn; **re-routes**
+  automatically if you leave the route; announces arrival; keeps the screen awake.
+- **Walking time and distance** in the summary and while walking (rounded to 10 m).
+- **Read directions aloud** for the whole list. Uses the most natural English voice on the
+  phone (Google / natural voices where available). No paid or cloud voice: the stack allows
+  no third-party services.
 
-### Calibrate (about 10 minutes on campus)
-1. On a phone, open `…/gau-campus-map/tools/calibrate.html` (team tool, not linked from the map).
-2. Stand **exactly at a place's dot** (its entrance, on the path), in the open. Pick it, tap
-   **Record**, keep still for 20 s.
-3. Repeat at **4–6 places spread over campus**: e.g. Main Gate, Mosque, Police Station,
-   Football Pitch, Galana Hostels, Graduation Square.
-4. Any **Fit error over 15 m** → re-record that place. Use **Check: where am I?** to test.
-5. **Copy** the block and paste it over `geo: null,` in `js/data.js`; bump the `?v=` in
-   `index.html`; PR → self-check → merge. The walking button appears.
+### GPS alignment (`geo` in `js/data.js`)
+The map is in drawing pixels; `geo` gives the real GPS position of 10 places so the phone's
+GPS can be placed on it. They were derived (20 Nov 2026) by aligning **OpenStreetMap**
+campus data (© OpenStreetMap contributors, ODbL: credited in the footer) with our GIS map:
+the field matches within 3 m, the hockey pitch within 2 m. Phone GPS is ±5–15 m.
+
+**To check / improve on campus:** open `tools/calibrate.html`, use **Check: where am I?** at a
+few dots. If any place is off by more than ~15 m, record 4–6 places there and replace `geo`.
 
 ## QR codes
 
